@@ -16,15 +16,14 @@ def build_board(size):
         initial_positions.append(0)
     initial_positions[0] = random.randint(1, size)
     for row in range(2, size+1):
-        initial_positions[row-1] = move_to_lowest_conflict_col(row, row, initial_positions)
-        #conflicts = []
-        #options = []
-        #for col in range(1, size+1):
-            #conflicts.append(number_of_conflicts(row, row, col, initial_positions))
-        #for i in range(size):
-            #if conflicts[i] == min(conflicts):
-                #options.append(i+1)
-        #initial_positions[row-1] = random.choice(options)
+        conflicts = []
+        options = []
+        for col in range(1, size+1):
+            conflicts.append(number_of_conflicts(row, row, col, initial_positions))
+        for i in range(size):
+            if conflicts[i] == min(conflicts):
+                options.append(i+1)
+        initial_positions[row-1] = random.choice(options)
     return initial_positions
 
 
