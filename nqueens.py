@@ -10,7 +10,8 @@ def nqueens(n):
     print('done')
 
 
-
+#This method builds the initial board. I tried the method they talked about in the NASA paper, as well as a random initialization
+#the placing with minimumconflicts really slowed the initializing on large N's, so I don't use it for anyting N>100.
 def build_board(size):
     initial_positions = []
     for i in range(size):
@@ -19,8 +20,10 @@ def build_board(size):
         initial_positions[0] = random.randint(1, size)
     for row in range(2, size+1):
         if size > 100:
+            # This places queens randomly
             initial_positions[row-1] = random.randint(1, size)
         else:
+            # This is the method where each queen is placed initially to cause minimum conflicts
             conflicts = []
             options = []
             for col in range(1, size+1):
@@ -32,7 +35,9 @@ def build_board(size):
 
     return initial_positions
 
-
+#This is the main repair function, it checks to see if there are still conflicts on the board, and if so, finds the queen with the most
+#conflicts and moves it to the column with the least conflicts. This function seems to work up to about N= 100 but starts to fail after
+#that
 def min_conflict_repair(board, size):
     iterations = 0
     while iterations < 100:
@@ -56,6 +61,7 @@ def min_conflict_repair(board, size):
 
     return None
 
+#This function returns the column on a row with the fewest conflicts, and a random minimum if there is a tie
 def move_to_lowest_conflict_col(size, row, board):
     conflicts = []
     options = []
@@ -66,6 +72,7 @@ def move_to_lowest_conflict_col(size, row, board):
             options.append(i + 1)
     return random.choice(options)
 
+#This function finds the number of conflicts on a specific square
 def number_of_conflicts(size, row, col, positions):
     total = 0
     for i in range(1, size+1):
@@ -75,18 +82,9 @@ def number_of_conflicts(size, row, col, positions):
             total += 1
     return total
 
-def queen_in_conflict(size, row, col, positions):
-    for i in range(1, size+1):
-        if i == row:
-            continue
-        if positions[i-1] == col or abs(i - row) == abs(positions[i-1]-col):
-            return i
-
 
 
 start_time = time.time()
 nqueens(1000)
-elapsed_time = time.time() - start_time
-print(elapsed_time)
 elapsed_time = time.time() - start_time
 print(elapsed_time)
