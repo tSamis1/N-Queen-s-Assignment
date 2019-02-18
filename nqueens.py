@@ -16,7 +16,7 @@ class nQueens:
         self.initialize(n)
         self.solve(n)
 
-
+    #Creates the board before iterative repair
     def initialize(self, n):
         for col in range(n):
             if col == 0:
@@ -26,21 +26,22 @@ class nQueens:
             else:
                 x = self.colConflicts(col, n)
                 self.totalConflicts += x
-
+    
     def colConflicts(self, col, n):
         oneConflict = []
         twoConflict = []
+        #Determine number of conflicts for a row
         for row in self.emptyRows:
             numConflicts = self.calcConflicts(row, col, n)
-
+            
             if numConflicts == 0:
                 self.board[col] = row + 1
                 self.updateConflicts(row, col, n)
                 return 0
-
+            
             if numConflicts == 1:
                 oneConflict.append(row)
-
+           
             if numConflicts == 2:
                 twoConflict.append(row)
 
@@ -54,7 +55,8 @@ class nQueens:
         self.board[col] = rowVal + 1
         self.updateConflicts(rowVal, col, n)
         return 1
-
+    
+    #Checks square for number of conflicts
     def calcConflicts(self, row, col, n):
         if (row - col) >= 0:
             leftDiag = row - col
@@ -73,7 +75,8 @@ class nQueens:
         self.occRows[row] += 1
         self.occRightDiag[row + col] += 1
         self.emptyRows.remove(row)
-
+    
+    
     def solve(self, n):
         for i in range(self.max_iterations):
             if self.totalConflicts == 0:    #REMEMBER TO KEEP TRACK OF TOTAL CONFLICTS
@@ -130,7 +133,8 @@ class nQueens:
         self.num_restarts += 1
         print("restarting")
         self.restart(n)
-
+    
+    #Remove queen from initial location
     def removeQueen(self, oldRow, col, n):
         if (oldRow - col) >= 0:
             leftDiag = oldRow - col
@@ -152,7 +156,8 @@ class nQueens:
         self.occRows[newRow] += 1
         self.occLeftDiag[leftDiag] += 1
         self.occRightDiag[newRow + col] += 1
-
+    
+    #Full reset
     def restart(self, n):
         self.board = [None] * n
         self.emptyRows = [i for i in range(n)]
