@@ -143,8 +143,7 @@ class nQueens:
         if self.occRows[oldRow] == 0:
             self.emptyRows.append(oldRow)
 
-    #This function is purely to avoid the emptyRows.remove() in the other updateConflicts method
-    #Pretty bad style, but w/e
+    #This function is to avoid the emptyRows.remove() in the other updateConflicts method
     def updateSolveConflicts(self, newRow, col, n):
         if (newRow - col) >= 0:
             leftDiag = newRow - col
