@@ -1,5 +1,4 @@
 import random
-import time
 
 class nQueens:
 
@@ -16,7 +15,7 @@ class nQueens:
         self.initialize(n)
         self.solve(n)
 
-    #Creates the board before iterative repair
+
     def initialize(self, n):
         for col in range(n):
             if col == 0:
@@ -26,22 +25,21 @@ class nQueens:
             else:
                 x = self.colConflicts(col, n)
                 self.totalConflicts += x
-    
+
     def colConflicts(self, col, n):
         oneConflict = []
         twoConflict = []
-        #Determine number of conflicts for a row
         for row in self.emptyRows:
             numConflicts = self.calcConflicts(row, col, n)
-            
+
             if numConflicts == 0:
                 self.board[col] = row + 1
                 self.updateConflicts(row, col, n)
                 return 0
-            
+
             if numConflicts == 1:
                 oneConflict.append(row)
-           
+
             if numConflicts == 2:
                 twoConflict.append(row)
 
@@ -55,8 +53,7 @@ class nQueens:
         self.board[col] = rowVal + 1
         self.updateConflicts(rowVal, col, n)
         return 1
-    
-    #Checks square for number of conflicts
+
     def calcConflicts(self, row, col, n):
         if (row - col) >= 0:
             leftDiag = row - col
@@ -75,11 +72,10 @@ class nQueens:
         self.occRows[row] += 1
         self.occRightDiag[row + col] += 1
         self.emptyRows.remove(row)
-    
-    
+
     def solve(self, n):
         for i in range(self.max_iterations):
-            if self.totalConflicts == 0:    #REMEMBER TO KEEP TRACK OF TOTAL CONFLICTS
+            if self.totalConflicts == 0:
                 print("solution")
                 return
             else:
@@ -87,54 +83,64 @@ class nQueens:
                 randCol = random.randint(0, n - 1)
                 oldRow = self.board[randCol]
                 oldRow -= 1
-                numConflicts = self.calcConflicts(oldRow, randCol, n)
+                numConflicts = self.calcConflicts(oldRow, randCol, n) - 3
                 while numConflicts < 1:
                     randCol = random.randint(0, n - 1)
                     oldRow = self.board[randCol]
                     oldRow -= 1
-                    numConflicts = self.calcConflicts(oldRow, randCol, n)
+                    numConflicts = self.calcConflicts(oldRow, randCol, n) - 3
 
                 noConflictUpdate = False
                 for newRow in self.emptyRows:
                     numConflicts = self.calcConflicts(newRow, randCol, n)
                     if numConflicts == 0:
                         self.board[randCol] = newRow + 1
-                        self.totalConflicts -= (self.calcConflicts(oldRow, randCol, n))
+                        self.totalConflicts -= (self.calcConflicts(oldRow, randCol, n) - 3)
                         self.updateConflicts(newRow, randCol, n)
                         self.removeQueen(oldRow, randCol, n)
                         noConflictUpdate = True
                         break
 
                 if noConflictUpdate == False:
+                    twoConflicts = []
                     randRow = random.randint(0, n - 1)
                     numConflicts = self.calcConflicts(randRow, randCol, n)
                     counter = 0
-                    while numConflicts >= self.calcConflicts(oldRow, randCol, n) and counter < 10:
+                    #NEW
+                    while numConflicts != 1:
                         randRow = random.randint(0, n - 1)
                         numConflicts = self.calcConflicts(randRow, randCol, n)
+                        if numConflicts == 2:
+                            twoConflicts.append(randRow)
                         counter += 1
+                        if counter == int(n/3):
+                            break
 
-                    if numConflicts < self.calcConflicts(oldRow, randCol, n):           #One conflict row
+                    if numConflicts == 1:
                         self.board[randCol] = randRow + 1
-                        self.totalConflicts -= (self.calcConflicts(oldRow, randCol, n) - numConflicts)
+                        self.totalConflicts -= ((self.calcConflicts(oldRow, randCol, n) - 3) - numConflicts)
                         self.updateSolveConflicts(randRow, randCol, n)
                         self.removeQueen(oldRow, randCol, n)
-
-                    elif counter ==  10:
-                        randRow = random.randint(0, n - 1)
-                        numConflicts = self.calcConflicts(randRow, randCol, n)
-                        while numConflicts > self.calcConflicts(oldRow, randCol, n):
-                            randRow = random.randint(0, n - 1)
-                            numConflicts = self.calcConflicts(randRow, randCol, n)
-                        self.board[randCol] = randRow + 1
-                        self.updateSolveConflicts(randRow, randCol, n)
-                        self.removeQueen(oldRow, randCol, n)
+                    else:
+                        if len(twoConflicts) > 0:
+                            randRow = random.choice(twoConflicts)
+                            self.board[randCol] = randRow + 1
+                            self.totalConflicts -= ((self.calcConflicts(oldRow, randCol, n) - 3) - numConflicts)
+                            self.updateSolveConflicts(randRow, randCol, n)
+                            self.removeQueen(oldRow, randCol, n)
+                        else:
+                            while numConflicts > (self.calcConflicts(oldRow, randCol, n) - 3):
+                                randRow = random.randint(0, n - 1)
+                                numConflicts = self.calcConflicts(randRow, randCol, n)
+                            self.board[randCol] = randRow + 1
+                            self.totalConflicts -= ((self.calcConflicts(oldRow, randCol, n) - 3) - numConflicts)
+                            self.updateSolveConflicts(randRow, randCol, n)
+                            self.removeQueen(oldRow, randCol, n)
 
         self.num_restarts += 1
         print("restarting")
         self.restart(n)
-    
-    #Remove queen from initial location
+
     def removeQueen(self, oldRow, col, n):
         if (oldRow - col) >= 0:
             leftDiag = oldRow - col
@@ -147,17 +153,16 @@ class nQueens:
         if self.occRows[oldRow] == 0:
             self.emptyRows.append(oldRow)
 
-    #This function is to avoid the emptyRows.remove() in the other updateConflicts method
+    #This function is purely to avoid the emptyRows.remove() in the other updateConflicts method
     def updateSolveConflicts(self, newRow, col, n):
         if (newRow - col) >= 0:
             leftDiag = newRow - col
         else:
-            leftDiag = (newRow - col) + (2*n - 1)   #Avoids negative values that would give the incorrect index
+            leftDiag = (newRow - col) + (2*n - 1)   ##Avoids negative values that would give the incorrect index
         self.occRows[newRow] += 1
         self.occLeftDiag[leftDiag] += 1
         self.occRightDiag[newRow + col] += 1
-    
-    #Full reset
+
     def restart(self, n):
         self.board = [None] * n
         self.emptyRows = [i for i in range(n)]
@@ -171,7 +176,6 @@ class nQueens:
         self.solve(n)
 
 def main():
-    begin = time.time()
     input = open("nqueens.txt")
     output = open("nqueens_out.txt", "w")
     lines = input.readlines()
@@ -179,12 +183,9 @@ def main():
     lines = [int(i) for i in lines]
     for n in lines:
         initial_board = nQueens(n)
-        output.write(str(initial_board.board) + "\n")
         #print(initial_board.board)
         #print(initial_board.totalConflicts)
         #print(initial_board.num_restarts)
-    end = time.time()
-    length = end - begin
-    print(str(length))
+        output.write(str(initial_board.board) + "\n")
 
 main()
