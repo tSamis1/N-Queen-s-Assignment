@@ -1,90 +1,181 @@
 import random
-import time
+
+class nQueens:
+
+    def __init__(self, n):
+        self.board = [None] * n
+        self.emptyRows = [i for i in range(n)]
+        random.shuffle(self.emptyRows)
+        self.occRows = [0] * n
+        self.occLeftDiag = [0] * (2 * n - 1)
+        self.occRightDiag = [0] * (2 * n - 1)
+        self.totalConflicts = 0
+        self.max_iterations = n * 2
+        self.num_restarts = 0
+        self.initialize(n)
+        self.solve(n)
 
 
-def nqueens(n):
-    size = n
-    solution = None
-    while solution is None:
-        solution = min_conflict_repair(build_board(size),size)
-    print('done')
+    def initialize(self, n):
+        for col in range(n):
+            if col == 0:
+                rowVal = random.randint(0, n - 1)
+                self.board[col] = rowVal + 1
+                self.updateConflicts(rowVal, col, n)
+            else:
+                x = self.colConflicts(col, n)
+                self.totalConflicts += x
 
+    def colConflicts(self, col, n):
+        oneConflict = []
+        twoConflict = []
+        for row in self.emptyRows:
+            numConflicts = self.calcConflicts(row, col, n)
 
-#This method builds the initial board. I tried the method they talked about in the NASA paper, as well as a random initialization
-#the placing with minimumconflicts really slowed the initializing on large N's, so I don't use it for anyting N>100.
-def build_board(size):
-    initial_positions = []
-    for i in range(size):
-        initial_positions.append(0)
-    if size <= 100:
-        initial_positions[0] = random.randint(1, size)
-    for row in range(2, size+1):
-        if size > 100:
-            # This places queens randomly
-            initial_positions[row-1] = random.randint(1, size)
+            if numConflicts == 0:
+                self.board[col] = row + 1
+                self.updateConflicts(row, col, n)
+                return 0
+
+            if numConflicts == 1:
+                oneConflict.append(row)
+
+            if numConflicts == 2:
+                twoConflict.append(row)
+
+        if len(oneConflict) == 0:
+            rowVal = random.choice(twoConflict)
+            self.board[col] = rowVal + 1
+            self.updateConflicts(rowVal, col, n)
+            return 2
+
+        rowVal = random.choice(oneConflict)
+        self.board[col] = rowVal + 1
+        self.updateConflicts(rowVal, col, n)
+        return 1
+
+    def calcConflicts(self, row, col, n):
+        if (row - col) >= 0:
+            leftDiag = row - col
         else:
-            # This is the method where each queen is placed initially to cause minimum conflicts
-            conflicts = []
-            options = []
-            for col in range(1, size+1):
-                conflicts.append(number_of_conflicts(row, row, col, initial_positions))
-            for i in range(size):
-                if conflicts[i] == min(conflicts):
-                    options.append(i+1)
-            initial_positions[row-1] = random.choice(options)
+            leftDiag = (row - col) + (2*n - 1)        #Avoids negative values that would give the incorrect index
+        rightDiag = row + col
+        numConflicts = self.occRows[row] + self.occLeftDiag[leftDiag] + self.occRightDiag[rightDiag]
+        return numConflicts
 
-    return initial_positions
+    def updateConflicts(self, row, col, n):
+        if (row - col) >= 0:
+            leftDiag = row - col
+        else:
+            leftDiag = (row - col) + (2*n - 1)   #Avoids negative values that would give the incorrect index
+        self.occLeftDiag[leftDiag] += 1
+        self.occRows[row] += 1
+        self.occRightDiag[row + col] += 1
+        self.emptyRows.remove(row)
 
-#This is the main repair function, it checks to see if there are still conflicts on the board, and if so, finds the queen with the most
-#conflicts and moves it to the column with the least conflicts. This function seems to work up to about N= 100 but starts to fail after
-#that
-def min_conflict_repair(board, size):
-    iterations = 0
-    while iterations < 100:
-        most_conflicts = 0
-        #print(iterations)
-        iterations += 1
-        num_conflicts = 0
-        for row in range(1, size+1):
-            conflict_per_row = number_of_conflicts(size, row, board[row-1], board)
-            if conflict_per_row > most_conflicts:
-                most_conflicts = row
-            num_conflicts += conflict_per_row
-        if num_conflicts == 0:
-            return board
-        print(most_conflicts)
+    def solve(self, n):
+        for i in range(self.max_iterations):
+            if self.totalConflicts == 0:    #REMEMBER TO KEEP TRACK OF TOTAL CONFLICTS
+                print("solution")
+                return
+            else:
+                #Generates random column with at least 1 conflict
+                randCol = random.randint(0, n - 1)
+                oldRow = self.board[randCol]
+                oldRow -= 1
+                numConflicts = self.calcConflicts(oldRow, randCol, n)
+                while numConflicts < 1:
+                    randCol = random.randint(0, n - 1)
+                    oldRow = self.board[randCol]
+                    oldRow -= 1
+                    numConflicts = self.calcConflicts(oldRow, randCol, n)
 
-        queen = most_conflicts
-        board[queen-1] = move_to_lowest_conflict_col(size, queen, board)
-        #print(queen)
-        #print(board)
+                noConflictUpdate = False
+                for newRow in self.emptyRows:
+                    numConflicts = self.calcConflicts(newRow, randCol, n)
+                    if numConflicts == 0:
+                        self.board[randCol] = newRow + 1
+                        self.totalConflicts -= (self.calcConflicts(oldRow, randCol, n))
+                        self.updateConflicts(newRow, randCol, n)
+                        self.removeQueen(oldRow, randCol, n)
+                        noConflictUpdate = True
+                        break
 
-    return None
+                if noConflictUpdate == False:
+                    randRow = random.randint(0, n - 1)
+                    numConflicts = self.calcConflicts(randRow, randCol, n)
+                    counter = 0
+                    while numConflicts >= self.calcConflicts(oldRow, randCol, n) and counter < 10:
+                        randRow = random.randint(0, n - 1)
+                        numConflicts = self.calcConflicts(randRow, randCol, n)
+                        counter += 1
 
-#This function returns the column on a row with the fewest conflicts, and a random minimum if there is a tie
-def move_to_lowest_conflict_col(size, row, board):
-    conflicts = []
-    options = []
-    for col in range(1, size + 1):
-        conflicts.append(number_of_conflicts(size, row, col, board))
-    for i in range(size):
-        if conflicts[i] == min(conflicts):
-            options.append(i + 1)
-    return random.choice(options)
+                    if numConflicts < self.calcConflicts(oldRow, randCol, n):           #One conflict row
+                        self.board[randCol] = randRow + 1
+                        self.totalConflicts -= (self.calcConflicts(oldRow, randCol, n) - numConflicts)
+                        self.updateSolveConflicts(randRow, randCol, n)
+                        self.removeQueen(oldRow, randCol, n)
 
-#This function finds the number of conflicts on a specific square
-def number_of_conflicts(size, row, col, positions):
-    total = 0
-    for i in range(1, size+1):
-        if i == row:
-            continue
-        if positions[i-1] == col or abs(i - row) == abs(positions[i-1]-col):
-            total += 1
-    return total
+                    elif counter ==  10:
+                        randRow = random.randint(0, n - 1)
+                        numConflicts = self.calcConflicts(randRow, randCol, n)
+                        while numConflicts > self.calcConflicts(oldRow, randCol, n):
+                            randRow = random.randint(0, n - 1)
+                            numConflicts = self.calcConflicts(randRow, randCol, n)
+                        self.board[randCol] = randRow + 1
+                        self.updateSolveConflicts(randRow, randCol, n)
+                        self.removeQueen(oldRow, randCol, n)
 
+        self.num_restarts += 1
+        print("restarting")
+        self.restart(n)
 
+    def removeQueen(self, oldRow, col, n):
+        if (oldRow - col) >= 0:
+            leftDiag = oldRow - col
+        else:
+            leftDiag = (oldRow - col) + (2*n - 1)   #Avoids negative values that would give the incorrect index
+        self.occLeftDiag[leftDiag] -= 1
+        self.occRows[oldRow] -= 1
+        self.occRightDiag[oldRow + col] -= 1
 
-start_time = time.time()
-nqueens(1000)
-elapsed_time = time.time() - start_time
-print(elapsed_time)
+        if self.occRows[oldRow] == 0:
+            self.emptyRows.append(oldRow)
+
+    #This function is purely to avoid the emptyRows.remove() in the other updateConflicts method
+    #Pretty bad style, but w/e
+    def updateSolveConflicts(self, newRow, col, n):
+        if (newRow - col) >= 0:
+            leftDiag = newRow - col
+        else:
+            leftDiag = (newRow - col) + (2*n - 1)   #Avoids negative values that would give the incorrect index
+        self.occRows[newRow] += 1
+        self.occLeftDiag[leftDiag] += 1
+        self.occRightDiag[newRow + col] += 1
+
+    def restart(self, n):
+        self.board = [None] * n
+        self.emptyRows = [i for i in range(n)]
+        random.shuffle(self.emptyRows)
+        self.occRows = [0] * n
+        self.occLeftDiag = [0] * (2 * n - 1)
+        self.occRightDiag = [0] * (2 * n - 1)
+        self.totalConflicts = 0
+        self.max_iterations = n*2
+        self.initialize(n)
+        self.solve(n)
+
+def main():
+    input = open("nqueens.txt")
+    output = open("nqueens_out.txt", "w")
+    lines = input.readlines()
+    lines = [x.strip() for x in lines]
+    lines = [int(i) for i in lines]
+    for n in lines:
+        initial_board = nQueens(n)
+        output.write(str(initial_board.board) + "\n")
+        #print(initial_board.board)
+        #print(initial_board.totalConflicts)
+        #print(initial_board.num_restarts)
+
+main()
