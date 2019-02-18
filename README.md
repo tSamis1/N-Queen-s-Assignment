@@ -15,4 +15,4 @@ Note:
 Run program using terminal/cmd to avoid additional time latency due to additional processing of IDE. 
 
 Note:
-Program sometimes incurs an extremely infrequent index error when attempting to select from the twoConflicts list in the function colConflicts. We decided to keep this error as the trade off in efficiency to compensate for this error is too great, especially when the error occurs so infrequently.
+Program sometimes incurs an extremely infrequent index error when attempting to select from the twoConflicts list in the function colConflicts. We decided to keep this error as the trade off in efficiency to compensate for this error is too great, especially when the error occurs so infrequently due to the incredibly low statistical change of the scenario.
