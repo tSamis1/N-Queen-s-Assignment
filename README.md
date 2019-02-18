@@ -10,3 +10,6 @@ Developed a program written in Python that efficiently solves the nQueens proble
 
 Requirements:
 Python 3+
+
+Note:
+Run program using terminal/cmd to avoid additional time latency due to additional processing of IDE
