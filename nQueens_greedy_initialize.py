@@ -76,3 +76,7 @@ class nQueens:
         self.queens["rows"][row] = [col]
         self.queens["leftDiag"][leftDiag] = [col]
         self.queens["rightDiag"][(row + col)] = [col]
+
+initial_board = nQueens(100000)
+print(initial_board.board)
+print(initial_board.totalConflicts)
