@@ -166,6 +166,7 @@ class nQueens:
         self.solve(n)
 
 def main():
+    begin = time.time()
     input = open("nqueens.txt")
     output = open("nqueens_out.txt", "w")
     lines = input.readlines()
@@ -177,5 +178,8 @@ def main():
         #print(initial_board.board)
         #print(initial_board.totalConflicts)
         #print(initial_board.num_restarts)
+    end = time.time()
+    length = end - begin
+    print(str(length))
 
 main()
