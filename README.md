@@ -10,7 +10,3 @@ Developed a program written in Python that efficiently solves the nQueens proble
 
 Requirements:
 Python 3+
-
-Note:
-Program sometimes incurs an extremely infrequent index error when attempting to select from the twoConflicts list in the function colConflicts. We decided to keep this error as the trade off in efficiency to compensate for this error is too great, especially when the error occurs so infrequently due to the incredibly low statistical chance of the scenario.
-
